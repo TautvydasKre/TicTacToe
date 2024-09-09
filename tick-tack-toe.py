@@ -6,8 +6,8 @@ from roasts import roasts
 pygame.init()
 
 # Dimensions and constants
-APP_WIDTH, APP_HEIGHT = 750, 750  # App size
-GAME_WIDTH, GAME_HEIGHT = 600, 600  # Game board size
+APP_WIDTH, APP_HEIGHT = 750, 750
+GAME_WIDTH, GAME_HEIGHT = 600, 600
 LINE_WIDTH = 10
 BOARD_COLS = 3
 BOARD_ROWS = 3
@@ -37,8 +37,14 @@ screen.fill(BG_COLOR)
 OFFSET_X = (APP_WIDTH - GAME_WIDTH) // 2
 OFFSET_Y = (APP_HEIGHT - GAME_HEIGHT) // 2
 
+consecutive_draws = 0
+
 
 def draw_lines():
+    """
+    This function: draws horizontal and vertical lines to draw a TicTacToe board
+    :return: None
+    """
     # Horizontal lines
     for row in range(1, BOARD_ROWS):
         pygame.draw.line(screen, LINE_COLOR, (OFFSET_X, OFFSET_Y + row * SQUARE_SIZE),
@@ -50,6 +56,12 @@ def draw_lines():
 
 
 def draw_figures(board):
+    """
+    This function: Draws the figures (X and O) on the Tic-Tac-Toe board based on the current state of the board.
+    :param board: A 2D list representing the Tic-Tac-Toe board where each cell contains
+                  either 1 (for X), 2 (for O), or None (for an empty cell).
+    :return: None
+    """
     for row in range(BOARD_ROWS):
         for col in range(BOARD_COLS):
             center_x = OFFSET_X + col * SQUARE_SIZE + SQUARE_SIZE // 2
@@ -71,6 +83,14 @@ def draw_figures(board):
 
 
 def check_win(board, player):
+    """
+    This function: checks if the specified player has won the game.
+
+    :param board: a 2D list representing the Tic-Tac-Toe board where each cell contains
+                  either 1 (for player X), 2 (for player O), or None (for an empty cell).
+    :param player: An integer representing the player to check for a win. 1 for player X, 2 for player O.
+    :return: True if the specified player has won the game, otherwise False.
+    """
     for row in range(BOARD_ROWS):
         if board[row][0] == board[row][1] == board[row][2] == player:
             return True
@@ -85,6 +105,13 @@ def check_win(board, player):
 
 
 def check_draw(board):
+    """
+    This function: checks if the game is a draw, meaning all cells are filled and no player has won.
+    :param board: a 2D list representing the Tic-Tac-Toe board where each cell contains
+                  either 1 (for player X), 2 (for player O), or None (for an empty cell).
+    :return: True if the game is a draw (i.e., all cells are filled and there is no winner),
+             otherwise False.
+    """
     for row in range(BOARD_ROWS):
         for col in range(BOARD_COLS):
             if board[row][col] is None:
@@ -93,20 +120,32 @@ def check_draw(board):
 
 
 def reset_board():
+    """
+    This function: resets the Tic-Tac-Toe board to its initial empty state.
+    :return: a 2D list representing the Tic-Tac-Toe board with all cells set to None,
+             indicating that no moves have been made yet.
+    """
     return [[None for _ in range(BOARD_COLS)] for _ in range(BOARD_ROWS)]
 
 
 def display_message(message, font, color, max_width, padding=20):
-    # Split message into words for word wrapping
+    """
+    This function: displays a message on the screen, handling text wrapping if necessary.
+    :param message: The text message to be displayed.
+    :param font: The font object used to render the text.
+    :param color: The color of the text.
+    :param max_width: The maximum width of the text area, used to wrap text if it's too wide.
+    :param padding: The padding around the text area, default is 20 pixels.
+    :return: None
+    """
     words = message.split(' ')
     lines = []
     current_line = ""
 
-    # Break the message into lines that fit within the max width
     for word in words:
         test_line = f"{current_line} {word}".strip()
         test_surface = font.render(test_line, True, color)
-        if test_surface.get_width() <= max_width - 2 * padding:  # Adjust for padding
+        if test_surface.get_width() <= max_width - 2 * padding:
             current_line = test_line
         else:
             lines.append(current_line)
@@ -115,35 +154,123 @@ def display_message(message, font, color, max_width, padding=20):
     if current_line:
         lines.append(current_line)
 
-    # Calculate the total height of the text block
     text_height = font.get_height() * len(lines)
     text_surface = pygame.Surface((max_width, text_height + 2 * padding), pygame.SRCALPHA)
     text_surface.fill(BG_COLOR)
 
-    # Render each line of text with padding
     y_offset = padding
     for line in lines:
         line_surface = font.render(line, True, color)
-        line_x = (max_width - line_surface.get_width()) // 2  # Center the line horizontally
+        line_x = (max_width - line_surface.get_width()) // 2
         text_surface.blit(line_surface, (line_x, y_offset))
         y_offset += font.get_height()
 
-    # Calculate the centered position for the text surface
     text_x = (APP_WIDTH - max_width) // 2
     text_y = (APP_HEIGHT - (text_height + 2 * padding)) // 2
 
-    # Blit the text surface to the screen
     screen.blit(text_surface, (text_x, text_y))
     pygame.display.update()
 
 
 def clear_screen():
+    """
+    This function: clears the screen by filling it with the background color.
+    :return: None
+    """
     screen.fill(BG_COLOR)
     pygame.display.update()
 
 
+def display_all_roasts():
+    """
+    This function: displays all roasts in a scrollable view on the screen. The user can scroll through the roasts using the mouse wheel or arrow keys.
+    Also provides a 'Back to Menu' button at the bottom of the screen for navigation.
+    :return: None
+    """
+    clear_screen()
+
+    scroll_y = 0
+    roast_spacing = 40
+    padding = 20
+    max_width = APP_WIDTH - 2 * padding
+
+    roast_surfaces = []
+    for i, roast in enumerate(roasts):
+        roast_text = f"{i + 1}. {roast}"
+        roast_lines = []
+        words = roast_text.split(' ')
+        current_line = ""
+
+        for word in words:
+            test_line = f"{current_line} {word}".strip()
+            test_surface = FONT.render(test_line, True, WHITE)
+            if test_surface.get_width() <= max_width:
+                current_line = test_line
+            else:
+                roast_lines.append(current_line)
+                current_line = word
+        if current_line:
+            roast_lines.append(current_line)
+
+        roast_surfaces.append(roast_lines)
+
+    total_roast_height = sum(len(lines) * FONT.get_height() for lines in roast_surfaces) + len(roasts) * roast_spacing
+    max_scroll_y = total_roast_height - APP_HEIGHT
+
+    scrolling = True
+
+    button_width = APP_WIDTH // 2
+    button_height = APP_HEIGHT // 8
+    back_button = pygame.Rect(APP_WIDTH // 4, APP_HEIGHT - button_height - padding, button_width, button_height)
+
+    while scrolling:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEWHEEL:
+                scroll_y += event.y * -30
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_DOWN:
+                    scroll_y -= 30
+                if event.key == pygame.K_UP:
+                    scroll_y += 30
+                if event.key == pygame.K_ESCAPE:
+                    scrolling = False
+                    return
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if back_button.collidepoint(event.pos):
+                    scrolling = False
+                    return
+
+        scroll_y = max(min(0, scroll_y), -max_scroll_y)
+
+        screen.fill(BG_COLOR)
+        y_offset = scroll_y + padding
+        for roast_lines in roast_surfaces:
+            for line in roast_lines:
+                line_surface = FONT.render(line, True, WHITE)
+                screen.blit(line_surface, (padding, y_offset))
+                y_offset += FONT.get_height() + 5
+            y_offset += roast_spacing
+
+        pygame.draw.rect(screen, WHITE, back_button)
+        back_text = FONT.render('Back to Menu', True, BLACK)
+        screen.blit(back_text, (back_button.x + back_button.width // 2 - back_text.get_width() // 2,
+                                back_button.y + back_button.height // 2 - back_text.get_height() // 2))
+
+        pygame.display.update()
+
+
 def main_menu():
-    clear_screen()  # Clear screen before drawing the main menu
+    """
+    This function: displays the main menu screen with options to start a game against another player, against the computer, or to exit the game.
+    If the player has achieved 20 consecutive draws, a 'Secret' button is also displayed.
+    Handles user input to navigate to the selected game mode or exit the game.
+    If the 'Secret' button is pressed, it opens the screen to display all roasts.
+    :return: str - Returns 'player' if the user selects 'VS Player', 'computer' if the user selects 'VS Computer', or exits the game if the 'Exit' button is clicked.
+    """
+    clear_screen()
 
     button_width = APP_WIDTH // 2
     button_height = APP_HEIGHT // 8
@@ -168,6 +295,14 @@ def main_menu():
     screen.blit(exit_text, (button3.x + button3.width // 2 - exit_text.get_width() // 2,
                             button3.y + button3.height // 2 - exit_text.get_height() // 2))
 
+    if consecutive_draws >= 2:
+        secret_button = pygame.Rect(APP_WIDTH // 4, APP_HEIGHT // 3 + 3 * (button_height + spacing), button_width,
+                                    button_height)
+        pygame.draw.rect(screen, WHITE, secret_button)
+        secret_text = FONT.render('Secret', True, BLACK)
+        screen.blit(secret_text, (secret_button.x + secret_button.width // 2 - secret_text.get_width() // 2,
+                                  secret_button.y + secret_button.height // 2 - secret_text.get_height() // 2))
+
     pygame.display.update()
 
     while True:
@@ -185,13 +320,59 @@ def main_menu():
                 if button3.collidepoint(event.pos):
                     pygame.quit()
                     sys.exit()
+                # Check secret button click
+                if consecutive_draws >= 2 and secret_button.collidepoint(event.pos):
+                    clear_screen()
+                    display_all_roasts()
+
+
+def display_secret_unlocked():
+    """
+    This function: displays a message indicating that the secret has been unlocked.
+    The message is "Secret Unlocked In Main Menu" with alternating colors for each letter (RED and BLUE).
+    The message is centered on the screen.
+    :return: None
+    """
+    message = "Secret Unlocked In Main Menu"
+    color_pattern = [RED, BLUE]
+    max_width = APP_WIDTH - 40
+    padding = 20
+
+    letter_surfaces = []
+    for i, letter in enumerate(message):
+        letter_surface = FONT.render(letter, True, color_pattern[i % 2])
+        letter_surfaces.append(letter_surface)
+
+    total_width = sum([surf.get_width() for surf in letter_surfaces])
+
+    x_offset = (APP_WIDTH - total_width) // 2
+    y_offset = (APP_HEIGHT - FONT.get_height()) // 2
+
+    for letter_surface in letter_surfaces:
+        screen.blit(letter_surface, (x_offset, y_offset))
+        x_offset += letter_surface.get_width()
+
+    pygame.display.update()
 
 
 def game_over_screen(winner, is_computer_win=False):
-    clear_screen()  # Clear screen before drawing the game over screen
+    """
+    This function: displays the game over screen with the result of the game.
+    The screen shows a message based on the game's outcome:
+    - If the game is a draw, it either displays "It's a draw!" or "Secret Unlocked In Main Menu" if 20 consecutive draws have been reached.
+    - If the game is won, it shows which player won or a roast message if the computer won.
+    The screen also includes buttons for 'Play Again' and 'Main Menu'.
+    :param winner: A string indicating the result of the game. It can be 'draw', 'X', or 'O'.
+    :param is_computer_win: A boolean indicating whether the computer won the game. Default is False.
+    :return: A string indicating the user's choice after the game over screen. Can be 'play_again' or 'main_menu'.
+    """
+    clear_screen()
 
     if winner == 'draw':
-        display_message("It's a draw!", FONT, WHITE, APP_WIDTH - 40)
+        if consecutive_draws >= 2:
+            display_secret_unlocked()
+        else:
+            display_message("It's a draw!", FONT, WHITE, APP_WIDTH - 40)
     elif is_computer_win:
         roast_message = random.choice(roasts)
         display_message(roast_message, FONT, WHITE, APP_WIDTH - 40)
@@ -230,6 +411,18 @@ def game_over_screen(winner, is_computer_win=False):
 
 
 def minimax(board, depth, is_maximizing):
+    """
+    This function: implements the Minimax algorithm to evaluate the best move for the current player.
+    The function recursively simulates all possible moves to determine the optimal move based on the current board state.
+    :param board: A 2D list representing the current state of the Tic-Tac-Toe board.
+                  Each element is None for an empty cell, 1 for Player X, or 2 for Player O.
+    :param depth: The current depth in the game tree. Depth increases with each recursive call.
+    :param is_maximizing: A boolean indicating whether the current player is maximizing (True for Player O, False for Player X).
+    :return: An integer score representing the outcome of the board state:
+             - 10 if Player O (the maximizing player) wins
+             - -10 if Player X (the minimizing player) wins
+             - 0 if the game is a draw
+    """
     if check_win(board, 1):
         return -10
     if check_win(board, 2):
@@ -242,7 +435,7 @@ def minimax(board, depth, is_maximizing):
         for row in range(BOARD_ROWS):
             for col in range(BOARD_COLS):
                 if board[row][col] is None:
-                    board[row][col] = 2  # Assume computer (O) is making the move
+                    board[row][col] = 2
                     score = minimax(board, depth + 1, False)
                     board[row][col] = None
                     best_score = max(score, best_score)
@@ -252,7 +445,7 @@ def minimax(board, depth, is_maximizing):
         for row in range(BOARD_ROWS):
             for col in range(BOARD_COLS):
                 if board[row][col] is None:
-                    board[row][col] = 1  # Assume player (X) is making the move
+                    board[row][col] = 1
                     score = minimax(board, depth + 1, True)
                     board[row][col] = None
                     best_score = min(score, best_score)
@@ -260,12 +453,20 @@ def minimax(board, depth, is_maximizing):
 
 
 def find_best_move(board):
+    """
+    This function: determines the best move for the computer player (Player O) by evaluating all possible moves
+    and selecting the move with the highest score using the Minimax algorithm.
+    :param board: A 2D list representing the current state of the Tic-Tac-Toe board.
+                  Each element is None for an empty cell, 1 for Player X, or 2 for Player O.
+     :return: A tuple (row, col) representing the best move for Player O.
+             If there are multiple moves with the same score, the function returns the first one encountered.
+    """
     best_move = None
     best_score = -float('inf')
     for row in range(BOARD_ROWS):
         for col in range(BOARD_COLS):
             if board[row][col] is None:
-                board[row][col] = 2  # Assume computer (O) is making the move
+                board[row][col] = 2
                 score = minimax(board, 0, False)
                 board[row][col] = None
                 if score > best_score:
@@ -275,100 +476,118 @@ def find_best_move(board):
 
 
 def computer_move(board):
+    """
+    This function: calculates the best move for the computer player (Player O) using the `find_best_move` function.
+    This move is determined based on the current state of the Tic-Tac-Toe board, aiming to maximize the
+    computer's chances of winning.
+    :param board: A 2D list representing the current state of the Tic-Tac-Toe board.
+                  Each element is None for an empty cell, 1 for Player X, or 2 for Player O.
+    :return: A tuple (row, col) representing the best move for Player O as determined by the `find_best_move` function.
+    """
     return find_best_move(board)
 
 
 def main():
-    mode = None  # Initialize mode variable to keep track of the game mode
+    """
+    The main game loop for the Tic-Tac-Toe game. Handles the game flow, including:
+    - Displaying the main menu and handling user input to start a game or exit.
+    - Managing the game state and player turns.
+    - Handling game events, including player moves and computer moves if playing against the computer.
+    - Checking for win conditions or draws and displaying the appropriate game over screens.
+    - Allowing the player to either play again or return to the main menu after a game ends.
+
+    This function:
+    - Initializes the game mode and board state.
+    - Calls helper functions to draw the board and figures.
+    - Manages player turns and updates the board based on user or computer moves.
+    - Checks win or draw conditions and updates the game state accordingly.
+    - Handles the transition between different game states and menus.
+    :return: None
+    """
+    mode = None
+    global consecutive_draws
 
     while True:
         if mode is None:
-            mode = main_menu()  # Main menu for selecting player vs player or vs computer
+            mode = main_menu()
 
-        board = reset_board()  # Reset the board for a new game
-        clear_screen()  # Clear the screen before drawing the game board
-        draw_lines()  # Redraw the grid lines
-        pygame.display.update()  # Update the display
+        board = reset_board()
+        clear_screen()
+        draw_lines()
+        pygame.display.update()
 
         game_over = False
-        current_player = 1  # Player 1 starts as X
-        winner = None  # Initialize winner
+        current_player = 1
+        winner = None
 
-        # The game loop (runs until 'game_over' becomes True)
         while not game_over:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
                 if event.type == pygame.MOUSEBUTTONDOWN and not game_over:
-                    mouseX = event.pos[0]  # x
-                    mouseY = event.pos[1]  # y
+                    mouseX = event.pos[0]
+                    mouseY = event.pos[1]
 
-                    # Adjust mouse position to account for offset
                     if OFFSET_X <= mouseX <= OFFSET_X + GAME_WIDTH and OFFSET_Y <= mouseY <= OFFSET_Y + GAME_HEIGHT:
                         clicked_row = (mouseY - OFFSET_Y) // SQUARE_SIZE
                         clicked_col = (mouseX - OFFSET_X) // SQUARE_SIZE
 
-                        # Ensure the click is within the square boundaries
                         if board[clicked_row][clicked_col] is None:
-                            board[clicked_row][clicked_col] = current_player  # Mark the square
-                            draw_figures(board)  # Draw X or O on the board
+                            board[clicked_row][clicked_col] = current_player
+                            draw_figures(board)
 
                             if check_win(board, current_player):
                                 game_over = True
                                 winner = 'X' if current_player == 1 else 'O'
                                 is_computer_win = (mode == 'computer' and winner == 'O')
                                 choice = game_over_screen(winner, is_computer_win=is_computer_win)
+                                consecutive_draws = 0
 
                             elif check_draw(board):
                                 game_over = True
-                                winner = 'draw'  # Set winner as 'draw'
+                                winner = 'draw'
+                                consecutive_draws += 1
                                 choice = game_over_screen(winner)
 
-                            current_player = current_player % 2 + 1  # Switch players
+                            current_player = current_player % 2 + 1
 
             if mode == 'computer' and current_player == 2 and not game_over:
-                row, col = computer_move(board)  # Get computer's move
-                board[row][col] = current_player  # Mark computer's move
+                row, col = computer_move(board)
+                board[row][col] = current_player
                 draw_figures(board)
 
                 if check_win(board, current_player):
                     game_over = True
-                    winner = 'O'  # Computer is always 'O'
+                    winner = 'O'
                     choice = game_over_screen(winner, is_computer_win=True)
+                    consecutive_draws = 0
 
                 elif check_draw(board):
                     game_over = True
                     winner = 'draw'
+                    consecutive_draws += 1
                     choice = game_over_screen(winner)
 
-                current_player = current_player % 2 + 1  # Switch back to player
+                current_player = current_player % 2 + 1
 
             pygame.display.update()
 
-        # Game Over: Handle "Play Again" or "Main Menu"
         if choice == 'play_again':
-            # Reset game state: board, current player, etc.
-            board = reset_board()  # Reset the board for the new game
-            game_over = False  # Set game_over to False for the new game
-            current_player = 1  # Player 1 starts again as X
-            winner = None  # Reset the winner
-
-            clear_screen()  # Clear the screen before starting a new game
-            draw_lines()  # Redraw the grid lines
-            pygame.display.update()  # Update the display
-
-            # Clear any previous events
+            board = reset_board()
+            game_over = False
+            current_player = 1
+            winner = None
+            clear_screen()
+            draw_lines()
+            pygame.display.update()
             pygame.event.clear()
-
-            # Wait for the next event loop to process correctly
-            pygame.time.wait(100)  # Small delay to ensure screen update
+            pygame.time.wait(100)
 
         elif choice == 'main_menu':
-            mode = None  # Reset mode to None to show the main menu again
-            clear_screen()  # Clear the screen before going back to the main menu
-            pygame.display.update()  # Ensure display is updated
-            # Optionally, you can add a small delay to ensure the screen update
+            mode = None
+            clear_screen()
+            pygame.display.update()
             pygame.time.wait(100)
 
 
