@@ -295,7 +295,7 @@ def main_menu():
     screen.blit(exit_text, (button3.x + button3.width // 2 - exit_text.get_width() // 2,
                             button3.y + button3.height // 2 - exit_text.get_height() // 2))
 
-    if consecutive_draws >= 2:
+    if consecutive_draws >= 20:
         secret_button = pygame.Rect(APP_WIDTH // 4, APP_HEIGHT // 3 + 3 * (button_height + spacing), button_width,
                                     button_height)
         pygame.draw.rect(screen, WHITE, secret_button)
@@ -321,7 +321,7 @@ def main_menu():
                     pygame.quit()
                     sys.exit()
                 # Check secret button click
-                if consecutive_draws >= 2 and secret_button.collidepoint(event.pos):
+                if consecutive_draws >= 20 and secret_button.collidepoint(event.pos):
                     clear_screen()
                     display_all_roasts()
 
@@ -369,7 +369,7 @@ def game_over_screen(winner, is_computer_win=False):
     clear_screen()
 
     if winner == 'draw':
-        if consecutive_draws >= 2:
+        if consecutive_draws >= 20:
             display_secret_unlocked()
         else:
             display_message("It's a draw!", FONT, WHITE, APP_WIDTH - 40)
