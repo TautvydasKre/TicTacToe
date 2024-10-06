@@ -64,12 +64,7 @@ The AI uses the **minimax algorithm** to determine the best move. It tries to ma
 
 ## Upcoming Features
 - Add different difficulty levels for the AI.
-- Add multiplayer over a network.
-
-## License
-This project is licensed under the MIT License.
 
 ## Credits
 - Developed by [Tautvydas Kreivys](https://github.com/TautvydasKre)
-- Roasts curated by [Tautvydas Kreivys] 
 - Thanks to the [Pygame](https://www.pygame.org) community for their amazing resources!
