@@ -14,7 +14,7 @@ A classic Tic Tac Toe game built using `pygame`, where you can play against anot
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/tic-tac-toe-pygame.git
+    git clone https://github.com/TautvydasKre/TicTacToe.git
     ```
 2. Navigate into the project directory:
     ```bash
