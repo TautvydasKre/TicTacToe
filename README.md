@@ -9,7 +9,6 @@ A classic Tic Tac Toe game built using `pygame`, where you can play against anot
 - **Score Keeping**: Tracks the score between Player X and Player O.
 - **Draw Handling**: After five consecutive draws, a special secret feature is unlocked in the main menu.
 - **Roast Mechanism**: The AI roasts you when it wins, with over 200 custom roast messages.
-- **Responsive Graphics**: The game board and figures are drawn dynamically, ensuring smooth gameplay.
 
 ## Installation
 
